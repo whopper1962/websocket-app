@@ -12,11 +12,20 @@ wss.on("connection", (ws) => {
   console.log("Client connected!");
 
   ws.on("message", (message) => {
-    wss.clients.forEach((client) => {
-      if (client.readyState === WebSocket.OPEN) {
-        client.send(message);
-      }
-    });
+    const data = JSON.parse(message);
+
+    if (data.type === "initialize") {
+      ws.userId = data.userId;
+    } else {
+      wss.clients.forEach((client) => {
+        if (
+          client.readyState === WebSocket.OPEN &&
+          (client.userId === data.sender || client.userId === data.recipient)
+        ) {
+          client.send(data.message);
+        }
+      });
+    }
   });
 });
 
